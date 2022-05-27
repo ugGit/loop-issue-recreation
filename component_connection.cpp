@@ -124,7 +124,7 @@ void sequential_ccl(const cell_collection<vector_type>& cells,
                                                   num_clusters, cluster_sizes);
 
     clusters = new cluster_element[num_clusters];
-    printf("Num cluster %d\n", num_clusters);
+    printf("Num cluster before %d\n", num_clusters);
     for(int i = 0; i < num_clusters; i++){
       // initialize the items arrays and store size information
       clusters[i].items = new cell[cluster_sizes[i]];
@@ -132,6 +132,7 @@ void sequential_ccl(const cell_collection<vector_type>& cells,
       printf("Init cluster %d\n", i);
       printf("Num cluster from within loop %d\n", num_clusters);
     }
+    printf("Num cluster after %d\n", num_clusters);
 
     for(int i = 0; i < num_clusters; i++){
       printf("Cluster %d: size=%d\n", i, cluster_sizes[i]);
