@@ -34,18 +34,18 @@ This might be considered a rather weak hypothesis, since the loop still gets exe
 ### Relevant Code
 Note that some lines are stripped from the code to be as concise as possible.
 
-From component_connection.cpp, function `void sequential_ccl(...)`, [lines 119-134](https://github.com/ugGit/loop-issue-recreation/blob/main/component_connection.cpp#L119-L134):
-```
+From component_connection.cpp, function `void sequential_ccl(...)`, [lines 119-134](https://github.com/ugGit/loop-issue-recreation/blob/main/component_connection.cpp#L119-L135):
+``` cpp
 // Run the algorithm
 unsigned int num_clusters = 0;
-unsigned int* cluster_sizes = new unsigned int[cells.size()]{}; // initialize values at 0
+unsigned int* cluster_sizes = new unsigned int[cells.size()]{};
 unsigned int* connected_cells = new unsigned int[cells.size()];
 
 detail::sparse_ccl<vector_type, cell>(cells, connected_cells, cells.size(),
                                       num_clusters, cluster_sizes);
 
 clusters = new cluster_element[num_clusters];
-printf("Num cluster %d\n", num_clusters);
+printf("Num cluster before %d\n", num_clusters);
 for(int i = 0; i < num_clusters; i++){
   // initialize the items arrays and store size information
   clusters[i].items = new cell[cluster_sizes[i]];
@@ -53,10 +53,11 @@ for(int i = 0; i < num_clusters; i++){
   printf("Init cluster %d\n", i);
   printf("Num cluster from within loop %d\n", num_clusters);
 }
+printf("Num cluster after %d\n", num_clusters);
 ```
 
 From component_connection.cpp, function `detail::sparse_ccl`:
-```
+``` cpp
 template <template <typename> class vector_t, typename cell_t>
 inline void sparse_ccl(const vector_t<cell_t>& cells,
                        unsigned int *L, 
@@ -76,9 +77,10 @@ nvc++ -stdpar=gpu -o main main.cpp && ./main
 
 Resulting output:
 ```
-Num cluster 3
+Num cluster before 3
 Init cluster 0
 Num cluster from within loop 0
+Num cluster after 3
 Cluster 0: size=2
 Cluster 1: size=1
 Cluster 2: size=6
@@ -96,6 +98,8 @@ The following list resumes the changes made that solve the issue:
 * Changing the execution policy to `std::execution::seq` in main.cpp (removing the policy works as well).
 * Using nvhpc 22.3 for compilation instead of 22.5.
 * Applying the flags `-g`, `-O0`, `-O1`, `-O2`, `-O3` during compilation.
+* Compile for multicore CPU `-stdpar=multicore`.
+* Compile without stdpar `-nostdpar`.
 
 And here things that did not help:
 * Removing the `inline` tag from function `sparce_ccl(...)`.
